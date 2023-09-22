@@ -17,6 +17,8 @@
 #include "xenia/kernel/xboxkrnl/xboxkrnl_private.h"
 #include "xenia/xbox.h"
 
+DECLARE_bool(apply_module_update);
+
 namespace xe {
 namespace kernel {
 namespace xboxkrnl {
@@ -105,6 +107,10 @@ dword_result_t XexLoadImage_entry(lpstring_t module_name, dword_t module_flags,
     // Not found; attempt to load as a user module.
     auto user_module = kernel_state()->LoadUserModule(module_name.value());
     if (user_module) {
+      if (cvars::apply_module_update) {
+        kernel_state()->ApplyTitleUpdate(user_module);
+      }
+
       kernel_state()->FinishLoadingUserModule(user_module);
       // Give up object ownership, this reference will be released by the last
       // XexUnloadImage call
