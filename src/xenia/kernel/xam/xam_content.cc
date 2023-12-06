@@ -7,6 +7,8 @@
  ******************************************************************************
  */
 
+#include <queue>
+
 #include "xenia/base/logging.h"
 #include "xenia/base/math.h"
 #include "xenia/base/string_util.h"
@@ -30,9 +32,14 @@ DEFINE_int32(
     "                    bad idea, could lead to undefined behavior.",
     "Content");
 
+DEFINE_bool(source_engine_license, false,
+            "License mask for Source Engine: L4D, L4D2 & Portal 2.", "HACKS");
+
 namespace xe {
 namespace kernel {
 namespace xam {
+
+std::queue<XCONTENT_AGGREGATE_DATA> DLC_queue{};
 
 dword_result_t XamContentGetLicenseMask_entry(lpdword_t mask_ptr,
                                               lpunknown_t overlapped_ptr) {
@@ -239,6 +246,63 @@ dword_result_t XamContentCreateEx_entry(
     dword_t user_index, lpstring_t root_name, lpvoid_t content_data_ptr,
     dword_t flags, lpdword_t disposition_ptr, lpdword_t license_mask_ptr,
     dword_t cache_size, qword_t content_size, lpvoid_t overlapped_ptr) {
+
+  if (cvars::source_engine_license && root_name.value() == "DLC") {
+    if (DLC_queue.empty()) {
+      // Get DLC list in same order as XamContentCreateEnumerator.
+      auto DLC_list = kernel_state()->content_manager()->ListContent(
+          0, xe::XContentType::kMarketplaceContent, kernel_state()->title_id());
+
+      DLC_queue = std::queue<XCONTENT_AGGREGATE_DATA>(
+          std::deque<XCONTENT_AGGREGATE_DATA>(DLC_list.begin(),
+                                              DLC_list.end()));
+    }
+
+    if (!DLC_queue.empty()) {
+      XCONTENT_AGGREGATE_DATA DLC = DLC_queue.front();
+      std::u16string DLC_name = DLC.display_name();
+
+      //  Portal 2
+      if (kernel_state()->title_id() == 0x45410912) {
+        if (DLC_name == u"Portal 2: Peer Review") {
+          cvars::license_mask = (1 << 24) & 0xFFFF0000;
+        }
+      }
+
+      // L4D2
+      if (kernel_state()->title_id() == 0x454108D4) {
+        if (DLC_name == u"The Passing") {
+          cvars::license_mask = (1 << 24) & 0xFFFF0000;
+        }
+
+        if (DLC_name == u"Left 4 Dead 2: The Sacrifice") {
+          cvars::license_mask = (2 << 24) & 0xFFFF0000;
+        }
+
+        if (DLC_name == u"Left 4 Dead 2: Cold Stream") {
+          cvars::license_mask = (3 << 24) & 0xFFFF0000;
+        }
+      }
+
+      // L4D & L4D GOTY
+      if (kernel_state()->title_id() == 0x45410830) {
+        if (DLC_name == u"Left 4 Dead Survival Pack") {
+          cvars::license_mask = (1 << 16) & 0xFFFF0000;
+        }
+
+        if (DLC_name == u"Left 4 Dead Crash Course Pack") {
+          cvars::license_mask = (2 << 16) & 0xFFFF0000;
+        }
+
+        if (DLC_name == u"Left 4 Dead: The Sacrifice") {
+          cvars::license_mask = (3 << 16) & 0xFFFF0000;
+        }
+      }
+
+      DLC_queue.pop();
+    }
+  }
+
   return xeXamContentCreate(user_index, root_name, content_data_ptr,
                             sizeof(XCONTENT_DATA), flags, disposition_ptr,
                             license_mask_ptr, cache_size, content_size,
