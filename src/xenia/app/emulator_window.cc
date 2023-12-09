@@ -1905,7 +1905,7 @@ void EmulatorWindow::NetplayStatus() {
          xe::string_util::BoolToString(xe::kernel::XLiveAPI::is_active());
   msg += "\n";
 
-  if (xe::kernel::XLiveAPI::is_intsalised() && cvars::upnp) {
+  if (xe::kernel::XLiveAPI::is_initialized() && cvars::upnp) {
     if (xe::kernel::XLiveAPI::upnp_handler.is_active()) {
       msg += "UPnP: Device found";
     } else {
@@ -1921,7 +1921,7 @@ void EmulatorWindow::NetplayStatus() {
   msg += "Offline Mode: " + xe::string_util::BoolToString(cvars::offline_mode);
   msg += "\n";
 
-  if (xe::kernel::XLiveAPI::is_intsalised()) {
+  if (xe::kernel::XLiveAPI::is_initialized()) {
     msg += "\n";
 
     if (xe::kernel::XLiveAPI::is_active()) {
