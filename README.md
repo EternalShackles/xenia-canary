@@ -6,13 +6,13 @@ Current online sessions are displayed on [https://xenia-netplay-2a0298c0e3f4.her
 
 ---
 
-## [Supported Games](SupportedTitles.md#supported-games)
+## [Netplay Compatibility](SupportedTitles.md#supported-games)
 
 You can find a list of working games **[here](SupportedTitles.md#supported-games)**.
 
-The supported list contains games that are working in some form of netplay/xbox live/systemlink. These supported games may not be fully functional.
+The netplay compatibility list contains games that are working in some form of netplay/xbox live/systemlink. These games may not be fully functional.
 
-A game is deemed supported when two or more players can connect to each other on said game.
+A game is added when two or more players can connect to each other and enter in-game together.
 
 ---
 
